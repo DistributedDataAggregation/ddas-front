@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import { TextField, Button, MenuItem, Select, FormControl, InputLabel, CircularProgress, Box, Grid2, Typography } from '@mui/material';
 import { ArrowForward, ArrowBack, ArrowUpward } from '@mui/icons-material';
@@ -6,12 +6,38 @@ import { ArrowForward, ArrowBack, ArrowUpward } from '@mui/icons-material';
 const App = () => {
   const API_URL = "http://localhost:3000/api/v1"
   const [tableName, setTableName] = useState('');
+  const [availableTables, setAvailableTables] = useState([]);
   const [groupColumns, setGroupColumns] = useState(['']);
   const [selectColumns, setSelectColumns] = useState([{ column: '', function: 'Minimum' }]);
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
   const [isFormVisible, setIsFormVisible] = useState(true); // State to toggle form visibility
+  const [tablesLoading, setTablesLoading] = useState(false);
+  const [tablesError, setTablesError] = useState(null);
+
+  // Fetch table names from API
+  useEffect(() => {
+    const fetchTables = async () => {
+      setTablesLoading(true);
+      setTablesError(null);
+
+      try {
+        const res = await fetch(API_URL + '/tables');
+        if (!res.ok) {
+          throw new Error(`Error fetching tables: ${res.status}`);
+        }
+        const data = await res.json();
+        setAvailableTables(data);
+      } catch (err) {
+        setTablesError(err.message);
+      } finally {
+        setTablesLoading(false);
+      }
+    };
+
+    fetchTables();
+  }, [API_URL]);
 
   // Scroll to top function
   const scrollToTop = () => {
@@ -126,17 +152,26 @@ const App = () => {
             {/* Show/Hide Form based on isFormVisible */}
             {isFormVisible && (
               <Box marginTop={2}>
-                <TextField
-                  label="Table Name"
-                  variant="outlined"
-                  fullWidth
-                  value={tableName}
-                  onChange={(e) => setTableName(e.target.value)}
-                  margin="normal"
-                  inputProps={{
-                    style: { padding: '6px 12px' }, // Reduced padding for smaller text fields
-                  }}
-                />
+                {tablesLoading ? (
+                  <CircularProgress />
+                ) : tablesError ? (
+                  <Typography color="error">Error loading tables: {tablesError}</Typography>
+                ) : (
+                  <FormControl variant="outlined" fullWidth margin="normal">
+                    <InputLabel>Table Name</InputLabel>
+                    <Select
+                      value={tableName}
+                      onChange={(e) => setTableName(e.target.value)}
+                      label="Table Name"
+                    >
+                      {availableTables.map((table, index) => (
+                        <MenuItem key={index} value={table}>
+                          {table}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
 
                 <Box marginBottom={2}>
                   <Typography variant="h6">Group Columns</Typography>
