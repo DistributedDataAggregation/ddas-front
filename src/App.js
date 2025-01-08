@@ -249,9 +249,11 @@ const App = () => {
                           onChange={(e) => handleSelectColumnChange(index, 'function', e.target.value)}
                           label="Function"
                         >
-                          <MenuItem value="Minimum">Minimum</MenuItem>
-                          <MenuItem value="Maximum">Maximum</MenuItem>
-                          <MenuItem value="Average">Average</MenuItem>
+                          <MenuItem value="Minimum">Min</MenuItem>
+                          <MenuItem value="Maximum">Max</MenuItem>
+                          <MenuItem value="Average">Avgnpm</MenuItem>
+                          <MenuItem value="Sum">Sum</MenuItem>
+                          <MenuItem value="Count">Count</MenuItem>
                         </Select>
                       </FormControl>
                       <Button onClick={() => handleRemoveSelectColumn(index)} variant="contained" color="error" size="small" style={{ marginLeft: '10px' }}>
