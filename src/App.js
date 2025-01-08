@@ -4,6 +4,7 @@ import { TextField, Button, MenuItem, Select, FormControl, InputLabel, CircularP
 import { ArrowForward, ArrowBack, ArrowUpward } from '@mui/icons-material';
 
 const App = () => {
+  const API_URL = "http://localhost:3000/api/v1"
   const [tableName, setTableName] = useState('');
   const [groupColumns, setGroupColumns] = useState(['']);
   const [selectColumns, setSelectColumns] = useState([{ column: '', function: 'Minimum' }]);
@@ -57,7 +58,7 @@ const App = () => {
     };
 
     try {
-      const res = await fetch('http://localhost:3000/api/v1/query', {
+      const res = await fetch(API_URL + '/query', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
