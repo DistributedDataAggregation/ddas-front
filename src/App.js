@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { TextField, Button, MenuItem, Select, FormControl, InputLabel, CircularProgress, Box, Grid2, Typography } from '@mui/material';
+import { Button, MenuItem, Select, FormControl, InputLabel, CircularProgress, Box, Grid2, Typography } from '@mui/material';
 import { ArrowForward, ArrowBack, ArrowUpward } from '@mui/icons-material';
 
 const App = () => {
@@ -15,6 +15,7 @@ const App = () => {
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
   const [isFormVisible, setIsFormVisible] = useState(true); // State to toggle form visibility
+  const [formError, setFormError] = useState(null); // Nowy stan dla błędów walidacji
 
   useEffect(() => {
     const fetchTables = async () => {
@@ -77,16 +78,35 @@ const App = () => {
   };
 
   const handleSubmit = async () => {
+    setFormError(null); // Resetujemy błędy przed próbą wysłania
     setLoading(true);
     setResponse(null);
     setError(null);
-
+  
+    if (!tableName) {
+      setFormError('Select a table name.');
+      setLoading(false);
+      return;
+    }
+  
+    if (groupColumns.filter((col) => col.trim() !== '').length === 0) {
+      setFormError('Select at least one group column.');
+      setLoading(false);
+      return;
+    }
+  
+    if (selectColumns.filter((col) => col.column.trim() !== '').length === 0) {
+      setFormError('Select at least one column for aggreagation.');
+      setLoading(false);
+      return;
+    }
+  
     const requestPayload = {
       table_name: tableName,
       group_columns: groupColumns.filter((col) => col.trim() !== ''),
       select: selectColumns.filter((col) => col.column.trim() !== ''),
     };
-
+  
     try {
       const res = await fetch(API_URL + '/query', {
         method: 'POST',
@@ -95,9 +115,9 @@ const App = () => {
         },
         body: JSON.stringify(requestPayload),
       });
-
+  
       const data = await res.json();
-
+  
       if (data.result.error) {
         setError(data.result.error);
       } else {
@@ -225,6 +245,12 @@ const App = () => {
                   <Button onClick={handleAddSelectColumn} variant="outlined" size="small">+ Add Select Column</Button>
                 </Box>
 
+                {formError && (
+                  <Box bgcolor="#f8d7da" border="1px solid #f5c6cb" padding={2} marginTop={3} borderRadius={1}>
+                  <Typography variant="h6" color="error">{formError}</Typography>
+                </Box>
+                )}
+
                 <Button onClick={handleSubmit} variant="contained" color="primary" size="large" fullWidth disabled={loading}>
                   Submit
                 </Button>
@@ -285,6 +311,8 @@ const App = () => {
               </Grid2>
             </Box>
           )}
+
+
         </Grid2>
       </Grid2>
     </div>
