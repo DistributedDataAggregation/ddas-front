@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { Button, MenuItem, Select, FormControl, InputLabel, CircularProgress, Box, Grid2, Typography } from '@mui/material';
+import { Button, MenuItem, Select, FormControl, InputLabel, CircularProgress, Box, Grid2, Typography, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 import { ArrowForward, ArrowBack, ArrowUpward } from '@mui/icons-material';
 
 const App = () => {
@@ -16,6 +16,11 @@ const App = () => {
   const [error, setError] = useState(null);
   const [isFormVisible, setIsFormVisible] = useState(true); // State to toggle form visibility
   const [formError, setFormError] = useState(null); // Nowy stan dla błędów walidacji
+  const [uploadOpen, setUploadOpen] = useState(false); // State to control the upload dialog
+  const [uploadTableName, setUploadTableName] = useState('');
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadError, setUploadError] = useState(null);
+  const [loadingUpload, setLoadingUpload] = useState(false);
 
   useEffect(() => {
     const fetchTables = async () => {
@@ -52,6 +57,44 @@ const App = () => {
       } 
    } 
   }
+
+  const handleUploadFile = async () => {
+    if (!uploadTableName) {
+      setUploadError('Table name is required.');
+      return;
+    }
+
+    if (!uploadFile) {
+      setUploadError('You must select a Parquet file.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', uploadFile);
+
+    setLoadingUpload(true);
+    setUploadError(null);
+
+    try {
+      const res = await fetch(`${API_URL}/tables/upload?name=${uploadTableName}`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.text();
+        throw new Error(errorData || 'Unknown error');
+      }
+
+      const data = await res.text();
+      alert('File uploaded successfully: ' + data);
+      setUploadOpen(false);
+    } catch (err) {
+      setUploadError(err.message);
+    } finally {
+      setLoadingUpload(false);
+    }
+  };
 
   const fetchColumns = async (endpoint, setOptions) => {
     try {
@@ -172,7 +215,7 @@ const App = () => {
   return (
     <div className="App">
       <Typography variant="h3" align="center" gutterBottom style={{ WebkitBackgroundClip: 'text', color: '#57b9ff' }}>
-        DistributedData Aggregation System
+        Distributed Data Aggregation System
       </Typography>
 
       <Button
@@ -194,20 +237,66 @@ const App = () => {
 
       <Grid2 container spacing={3}>
         <Grid2 item xs={12} sm={isFormVisible ? 4 : 0}>
-          <Box className="form" marginBottom={3} position="relative">
+        <Box className="form" marginBottom={3} position="relative">
+          <Grid2 item xs={12} sm={8}>
+
+          <Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
             <Button
               variant="outlined"
               onClick={() => setIsFormVisible(!isFormVisible)}
               size="small"
               style={{
-                position: 'absolute',
-                top: -25,
-                left: 10,
                 zIndex: 10,
               }}
             >
               {isFormVisible ? <ArrowBack /> : <ArrowForward />}
             </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              onClick={() => setUploadOpen(true)}
+            >
+              Upload
+            </Button>
+          </Box>
+
+            <Dialog open={uploadOpen} onClose={() => setUploadOpen(false)} fullWidth maxWidth="sm">
+              <DialogTitle>Upload Parquet File</DialogTitle>
+              <DialogContent>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Table Name"
+                  value={uploadTableName}
+                  onChange={(e) => setUploadTableName(e.target.value)}
+                />
+                <input
+                  type="file"
+                  accept=".parquet"
+                  onChange={(e) => setUploadFile(e.target.files[0])}
+                  style={{ marginTop: '10px', marginBottom: '10px' }}
+                />
+                {uploadError && (
+                  <Typography color="error" variant="body2">
+                    {uploadError}
+                  </Typography>
+                )}
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setUploadOpen(false)} color="secondary">
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleUploadFile}
+                  color="primary"
+                  disabled={loadingUpload}
+                >
+                  {loadingUpload ? 'Uploading...' : 'Upload'}
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </Grid2>
 
             {isFormVisible && (
               <Box marginTop={2}>
