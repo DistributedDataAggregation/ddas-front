@@ -100,6 +100,23 @@ const App = () => {
       setLoading(false);
       return;
     }
+
+    const uniqueGroupColumns = new Set(groupColumns.filter((col) => col.trim() !== ''));
+    if (uniqueGroupColumns.size !== groupColumns.filter((col) => col.trim() !== '').length) {
+      setFormError('Group columns must be unique.');
+      setLoading(false);
+      return;
+    }
+
+    // Walidacja: Konflikt między kolumnami grupującymi a agregowanymi
+    const groupSet = new Set(groupColumns.filter((col) => col.trim() !== ''));
+    const conflict = selectColumns.some((col) => groupSet.has(col.column.trim()));
+    if (conflict) {
+      setFormError('Select columns cannot be the same as group columns.');
+      setLoading(false);
+      return;
+    }
+
   
     const requestPayload = {
       table_name: tableName,
