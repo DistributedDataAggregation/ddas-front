@@ -31,6 +31,28 @@ const App = () => {
     fetchTables();
   }, []);
 
+  const getValue = (result) => {
+
+    if (result.is_null) {
+      return 'NULL'
+    }
+
+    switch(result.result_type) { 
+      case 'INT': { 
+        return result.value
+      } 
+      case 'DOUBLE': { 
+        return result.double_value
+      } 
+      case 'FLOAT': { 
+        return result.float_value
+     } 
+      default: { 
+         return 'NULL'
+      } 
+   } 
+  }
+
   const fetchColumns = async (endpoint, setOptions) => {
     try {
       const res = await fetch(`${API_URL}${endpoint}?name=${tableName}`);
@@ -251,7 +273,7 @@ const App = () => {
                         >
                           <MenuItem value="Minimum">Min</MenuItem>
                           <MenuItem value="Maximum">Max</MenuItem>
-                          <MenuItem value="Average">Avgnpm</MenuItem>
+                          <MenuItem value="Average">Avg</MenuItem>
                           <MenuItem value="Sum">Sum</MenuItem>
                           <MenuItem value="Count">Count</MenuItem>
                         </Select>
@@ -319,7 +341,7 @@ const App = () => {
                               <td key={colIndex}>{value}</td>
                             ))}
                             {row.results.map((result, resIndex) => (
-                              <td key={resIndex}>{result.is_null ? 'NULL' : result.value}</td>
+                              <td key={resIndex}>{getValue(result)}</td>
                             ))}
                           </tr>
                         );
