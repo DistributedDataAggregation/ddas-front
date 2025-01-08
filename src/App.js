@@ -4,45 +4,49 @@ import { TextField, Button, MenuItem, Select, FormControl, InputLabel, CircularP
 import { ArrowForward, ArrowBack, ArrowUpward } from '@mui/icons-material';
 
 const App = () => {
-  const API_URL = "http://localhost:3000/api/v1"
+  const API_URL = "http://localhost:3000/api/v1";
   const [tableName, setTableName] = useState('');
-  const [availableTables, setAvailableTables] = useState([]);
+  const [tables, setTables] = useState([]);
   const [groupColumns, setGroupColumns] = useState(['']);
+  const [groupColumnOptions, setGroupColumnOptions] = useState([]);
   const [selectColumns, setSelectColumns] = useState([{ column: '', function: 'Minimum' }]);
+  const [selectColumnOptions, setSelectColumnOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
   const [isFormVisible, setIsFormVisible] = useState(true); // State to toggle form visibility
-  const [tablesLoading, setTablesLoading] = useState(false);
-  const [tablesError, setTablesError] = useState(null);
 
-  // Fetch table names from API
   useEffect(() => {
     const fetchTables = async () => {
-      setTablesLoading(true);
-      setTablesError(null);
-
       try {
         const res = await fetch(API_URL + '/tables');
-        if (!res.ok) {
-          throw new Error(`Error fetching tables: ${res.status}`);
-        }
         const data = await res.json();
-        setAvailableTables(data);
+        setTables(data);
       } catch (err) {
-        setTablesError(err.message);
-      } finally {
-        setTablesLoading(false);
+        console.error('Error fetching tables:', err);
       }
     };
 
     fetchTables();
-  }, [API_URL]);
+  }, []);
 
-  // Scroll to top function
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const fetchColumns = async (endpoint, setOptions) => {
+    try {
+      const res = await fetch(`${API_URL}${endpoint}?name=${tableName}`);
+      const data = await res.json();
+      console.log(data)
+      setOptions(data.map(({ Name, Type }) => ({ label: `${Name} (${Type})`, value: Name })));
+    } catch (err) {
+      console.error(`Error fetching columns from ${endpoint}:`, err);
+    }
   };
+
+  useEffect(() => {
+    if (tableName) {
+      fetchColumns('/tables/columns', setGroupColumnOptions);
+      fetchColumns('/tables/select-columns', setSelectColumnOptions);
+    }
+  }, [tableName]);
 
   const handleAddGroupColumn = () => {
     setGroupColumns([...groupColumns, '']);
@@ -112,12 +116,11 @@ const App = () => {
         DistributedData Aggregation System
       </Typography>
 
-      {/* Scroll to Top Button */}
       <Button
         variant="contained"
         color="primary"
         size="small"
-        onClick={scrollToTop}
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         style={{
           position: 'fixed',
           bottom: '20px',
@@ -131,17 +134,15 @@ const App = () => {
       </Button>
 
       <Grid2 container spacing={3}>
-        {/* Left side: Formularz */}
         <Grid2 item xs={12} sm={isFormVisible ? 4 : 0}>
           <Box className="form" marginBottom={3} position="relative">
-            {/* Button to toggle form visibility, placed above the form */}
             <Button
               variant="outlined"
               onClick={() => setIsFormVisible(!isFormVisible)}
               size="small"
               style={{
                 position: 'absolute',
-                top: -25,  // Positioning the button above the form
+                top: -25,
                 left: 10,
                 zIndex: 10,
               }}
@@ -149,44 +150,37 @@ const App = () => {
               {isFormVisible ? <ArrowBack /> : <ArrowForward />}
             </Button>
 
-            {/* Show/Hide Form based on isFormVisible */}
             {isFormVisible && (
               <Box marginTop={2}>
-                {tablesLoading ? (
-                  <CircularProgress />
-                ) : tablesError ? (
-                  <Typography color="error">Error loading tables: {tablesError}</Typography>
-                ) : (
-                  <FormControl variant="outlined" fullWidth margin="normal">
-                    <InputLabel>Table Name</InputLabel>
-                    <Select
-                      value={tableName}
-                      onChange={(e) => setTableName(e.target.value)}
-                      label="Table Name"
-                    >
-                      {availableTables.map((table, index) => (
-                        <MenuItem key={index} value={table}>
-                          {table}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
+                <FormControl variant="outlined" fullWidth margin="normal">
+                  <InputLabel>Table Name</InputLabel>
+                  <Select
+                    value={tableName}
+                    onChange={(e) => setTableName(e.target.value)}
+                    label="Table Name"
+                  >
+                    {tables.map((table, index) => (
+                      <MenuItem key={index} value={table}>{table}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
 
                 <Box marginBottom={2}>
                   <Typography variant="h6">Group Columns</Typography>
                   {groupColumns.map((col, index) => (
                     <Box key={index} display="flex" alignItems="center" marginBottom={1}>
-                      <TextField
-                        label="Group Column"
-                        variant="outlined"
-                        value={col}
-                        onChange={(e) => handleGroupColumnChange(index, e.target.value)}
-                        fullWidth
-                        inputProps={{
-                          style: { padding: '6px 12px' }, // Reduced padding for smaller text fields
-                        }}
-                      />
+                      <FormControl variant="outlined" fullWidth>
+                        <InputLabel>Group Column</InputLabel>
+                        <Select
+                          value={col}
+                          onChange={(e) => handleGroupColumnChange(index, e.target.value)}
+                          label="Group Column"
+                        >
+                          {groupColumnOptions.map((option, i) => (
+                            <MenuItem key={i} value={option.value}>{option.label}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
                       <Button onClick={() => handleRemoveGroupColumn(index)} variant="contained" color="error" size="small" style={{ marginLeft: '10px' }}>
                         Remove
                       </Button>
@@ -199,16 +193,18 @@ const App = () => {
                   <Typography variant="h6">Select Columns</Typography>
                   {selectColumns.map((col, index) => (
                     <Box key={index} display="flex" alignItems="center" marginBottom={1}>
-                      <TextField
-                        label="Column Name"
-                        variant="outlined"
-                        value={col.column}
-                        onChange={(e) => handleSelectColumnChange(index, 'column', e.target.value)}
-                        fullWidth
-                        inputProps={{
-                          style: { padding: '6px 12px' }, // Reduced padding for smaller text fields
-                        }}
-                      />
+                      <FormControl variant="outlined" fullWidth>
+                        <InputLabel>Column Name</InputLabel>
+                        <Select
+                          value={col.column}
+                          onChange={(e) => handleSelectColumnChange(index, 'column', e.target.value)}
+                          label="Column Name"
+                        >
+                          {selectColumnOptions.map((option, i) => (
+                            <MenuItem key={i} value={option.value}>{option.label}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
                       <FormControl variant="outlined" size="small" style={{ marginLeft: '10px', width: '150px' }}>
                         <InputLabel>Function</InputLabel>
                         <Select
@@ -237,9 +233,7 @@ const App = () => {
           </Box>
         </Grid2>
 
-        {/* Right side: Tabelka z wynikami */}
         <Grid2 item xs={12} sm={isFormVisible ? 8 : 12}>
-          {/* Increased space */}
           <Box marginTop={5}></Box>
 
           {loading && !response && !error && (
