@@ -4,7 +4,7 @@ import { Button, MenuItem, Select, FormControl, InputLabel, CircularProgress, Bo
 import { ArrowForward, ArrowBack, ArrowUpward } from '@mui/icons-material';
 
 const App = () => {
-  const API_URL = "http://localhost:3000/api/v1";
+  const API_URL = window.env?.REACT_APP_API_BASE_URL ||process.env.REACT_APP_API_BASE_URL || window.env?.REACT_APP_API_BASE_URL
   const [tableName, setTableName] = useState('');
   const [tables, setTables] = useState([]);
   const [groupColumns, setGroupColumns] = useState(['']);
