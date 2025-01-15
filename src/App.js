@@ -87,7 +87,7 @@ const App = () => {
       }
 
       const data = await res.text();
-      alert('File uploaded successfully: ' + data);
+      alert(data);
       setUploadOpen(false);
     } catch (err) {
       setUploadError(err.message);
