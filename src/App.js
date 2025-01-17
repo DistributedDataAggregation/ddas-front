@@ -44,7 +44,7 @@ const App = () => {
 
     switch(result.result_type) { 
       case 'INT': { 
-        return result.value
+        return result.int_value
       } 
       case 'DOUBLE': { 
         return result.double_value
@@ -87,7 +87,7 @@ const App = () => {
       }
 
       const data = await res.text();
-      alert('File uploaded successfully: ' + data);
+      alert(data);
       setUploadOpen(false);
     } catch (err) {
       setUploadError(err.message);
@@ -101,7 +101,7 @@ const App = () => {
       const res = await fetch(`${API_URL}${endpoint}?name=${tableName}`);
       const data = await res.json();
       console.log(data)
-      setOptions(data.map(({ Name, Type }) => ({ label: `${Name} (${Type})`, value: Name })));
+      setOptions(data.map(({ name, type }) => ({ label: `${name} (${type})`, value: name })));
     } catch (err) {
       console.error(`Error fetching columns from ${endpoint}:`, err);
     }
@@ -153,6 +153,18 @@ const App = () => {
       setLoading(false);
       return;
     }
+
+    if (groupColumns.some((col) => col.trim() === '')) {
+      setFormError('All Group Columns must be filled.');
+      setLoading(false);
+      return;
+    }
+
+    if (selectColumns.some((col) => col.column.trim() === '')) {
+      setFormError('All Select Columns must be filled.');
+      setLoading(false);
+      return;
+    }
   
     if (groupColumns.filter((col) => col.trim() !== '').length === 0) {
       setFormError('Select at least one group column.');
@@ -198,13 +210,13 @@ const App = () => {
         body: JSON.stringify(requestPayload),
       });
   
+      if (!res.ok) {
+        const errorData = await res.text();
+        throw new Error(errorData || 'Unknown error');
+      } 
+
       const data = await res.json();
-  
-      if (data.result.error) {
-        setError(data.result.error);
-      } else {
-        setResponse(data.result.values);
-      }
+      setResponse(data.result.values);
     } catch (err) {
       setError({ message: 'Failed to fetch data', inner_message: err.message });
     } finally {
