@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import { Button, MenuItem, Select, FormControl, InputLabel, CircularProgress, Box, Grid2, Typography, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 import { ArrowForward, ArrowBack, ArrowUpward } from '@mui/icons-material';
+import SplitPane from 'react-split-pane';
+
 
 const App = () => {
   const API_URL = "http://localhost:3000/api/v1";
@@ -251,8 +253,12 @@ const App = () => {
         <ArrowUpward />
       </Button>
 
-      <Grid2 container spacing={3}>
-        <Grid2 item xs={12} sm={isFormVisible ? 4 : 0}>
+      <SplitPane
+      split="vertical"
+      minSize={isFormVisible ? 200 : 0} // Minimalna szerokość formularza
+      defaultSize={isFormVisible ? 300 : 0} // Początkowa szerokość formularza
+      style={{ position: 'relative' }}
+    >
           <Box className="form" marginBottom={3} position="relative">
             <Grid2 item xs={12} sm={8}>
 
@@ -403,10 +409,9 @@ const App = () => {
               </Box>
             )}
           </Box>
-        </Grid2>
+        
 
-        <Grid2 item xs={12} sm={isFormVisible ? 8 : 12}>
-          <Box marginTop={5}></Box>
+          <Box marginTop={5} marginLeft={5}>
 
           {loading && !response && !error && (
             <Box display="flex" justifyContent="center" marginBottom={3}>
@@ -459,8 +464,8 @@ const App = () => {
           )}
 
 
-        </Grid2>
-      </Grid2>
+        </Box>
+      </SplitPane>
     </div>
   );
 };
