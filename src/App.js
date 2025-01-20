@@ -4,12 +4,14 @@ import { Button, MenuItem, Select, FormControl, InputLabel, CircularProgress, Bo
 import { ArrowForward, ArrowBack, ArrowUpward } from '@mui/icons-material';
 
 const App = () => {
-  const API_URL = window.env?.REACT_APP_API_BASE_URL ||process.env.REACT_APP_API_BASE_URL || window.env?.REACT_APP_API_BASE_URL
+  const API_URL = "http://localhost:3000/api/v1";
   const [tableName, setTableName] = useState('');
   const [tables, setTables] = useState([]);
   const [groupColumns, setGroupColumns] = useState(['']);
+  const [groupColumnsTable, setGroupColumnsTable] = useState(['']);
   const [groupColumnOptions, setGroupColumnOptions] = useState([]);
   const [selectColumns, setSelectColumns] = useState([{ column: '', function: 'Minimum' }]);
+  const [selectColumnsTable, setSelectColumnsTable] = useState([{ column: '', function: 'Minimum' }]);
   const [selectColumnOptions, setSelectColumnOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState(null);
@@ -142,54 +144,54 @@ const App = () => {
     setSelectColumns(selectColumns.filter((_, i) => i !== index));
   };
 
+  const addValidationError = (tempError, error) => {
+    if (!tempError) {
+      return error;
+    }
+    return tempError + error;
+  }
+
   const handleSubmit = async () => {
     setFormError(null); // Resetujemy błędy przed próbą wysłania
     setLoading(true);
     setResponse(null);
     setError(null);
-  
+
+    let tempError = null;
     if (!tableName) {
-      setFormError('Select a table name.');
-      setLoading(false);
-      return;
+      tempError = addValidationError(tempError, 'Select a table name.');
     }
 
     if (groupColumns.some((col) => col.trim() === '')) {
-      setFormError('All Group Columns must be filled.');
-      setLoading(false);
-      return;
+      tempError = addValidationError(tempError, 'All Group Columns must be filled.');
     }
 
     if (selectColumns.some((col) => col.column.trim() === '')) {
-      setFormError('All Select Columns must be filled.');
-      setLoading(false);
-      return;
+      tempError = addValidationError(tempError, 'All Select Columns must be filled.');
     }
   
     if (groupColumns.filter((col) => col.trim() !== '').length === 0) {
-      setFormError('Select at least one group column.');
-      setLoading(false);
-      return;
+      tempError = addValidationError(tempError, 'Select at least one group column.');
     }
   
     if (selectColumns.filter((col) => col.column.trim() !== '').length === 0) {
-      setFormError('Select at least one column for aggreagation.');
-      setLoading(false);
-      return;
+      tempError = addValidationError(tempError, 'Select at least one column for aggreagation.');
     }
 
     const uniqueGroupColumns = new Set(groupColumns.filter((col) => col.trim() !== ''));
     if (uniqueGroupColumns.size !== groupColumns.filter((col) => col.trim() !== '').length) {
-      setFormError('Group columns must be unique.');
-      setLoading(false);
-      return;
+      tempError = addValidationError(tempError, 'Group columns must be unique.');
     }
 
     // Walidacja: Konflikt między kolumnami grupującymi a agregowanymi
     const groupSet = new Set(groupColumns.filter((col) => col.trim() !== ''));
     const conflict = selectColumns.some((col) => groupSet.has(col.column.trim()));
     if (conflict) {
-      setFormError('Select columns cannot be the same as group columns.');
+      tempError = addValidationError(tempError, 'Select columns cannot be the same as group columns.');
+    }
+
+    if (tempError) {
+      setFormError(tempError);
       setLoading(false);
       return;
     }
@@ -217,6 +219,8 @@ const App = () => {
 
       const data = await res.json();
       setResponse(data.result.values);
+      setGroupColumnsTable(groupColumns)
+      setSelectColumnsTable(selectColumns)
     } catch (err) {
       setError({ message: 'Failed to fetch data', inner_message: err.message });
     } finally {
@@ -249,66 +253,66 @@ const App = () => {
 
       <Grid2 container spacing={3}>
         <Grid2 item xs={12} sm={isFormVisible ? 4 : 0}>
-        <Box className="form" marginBottom={3} position="relative">
-          <Grid2 item xs={12} sm={8}>
+          <Box className="form" marginBottom={3} position="relative">
+            <Grid2 item xs={12} sm={8}>
 
-          <Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
-            <Button
-              variant="outlined"
-              onClick={() => setIsFormVisible(!isFormVisible)}
-              size="small"
-              style={{
-                zIndex: 10,
-              }}
-            >
-              {isFormVisible ? <ArrowBack /> : <ArrowForward />}
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              onClick={() => setUploadOpen(true)}
-            >
-              Upload
-            </Button>
-          </Box>
-
-            <Dialog open={uploadOpen} onClose={() => setUploadOpen(false)} fullWidth maxWidth="sm">
-              <DialogTitle>Upload Parquet File</DialogTitle>
-              <DialogContent>
-                <TextField
-                  fullWidth
-                  margin="normal"
-                  label="Table Name"
-                  value={uploadTableName}
-                  onChange={(e) => setUploadTableName(e.target.value)}
-                />
-                <input
-                  type="file"
-                  accept=".parquet"
-                  onChange={(e) => setUploadFile(e.target.files[0])}
-                  style={{ marginTop: '10px', marginBottom: '10px' }}
-                />
-                {uploadError && (
-                  <Typography color="error" variant="body2">
-                    {uploadError}
-                  </Typography>
-                )}
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setUploadOpen(false)} color="secondary">
-                  Cancel
+              <Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
+                <Button
+                  variant="outlined"
+                  onClick={() => setIsFormVisible(!isFormVisible)}
+                  size="small"
+                  style={{
+                    zIndex: 10,
+                  }}
+                >
+                  {isFormVisible ? <ArrowBack /> : <ArrowForward />}
                 </Button>
                 <Button
-                  onClick={handleUploadFile}
+                  variant="contained"
                   color="primary"
-                  disabled={loadingUpload}
+                  size="small"
+                  onClick={() => setUploadOpen(true)}
                 >
-                  {loadingUpload ? 'Uploading...' : 'Upload'}
+                  Upload
                 </Button>
-              </DialogActions>
-            </Dialog>
-          </Grid2>
+              </Box>
+
+              <Dialog open={uploadOpen} onClose={() => setUploadOpen(false)} fullWidth maxWidth="sm">
+                <DialogTitle>Upload Parquet File</DialogTitle>
+                <DialogContent>
+                  <TextField
+                    fullWidth
+                    margin="normal"
+                    label="Table Name"
+                    value={uploadTableName}
+                    onChange={(e) => setUploadTableName(e.target.value)}
+                  />
+                  <input
+                    type="file"
+                    accept=".parquet"
+                    onChange={(e) => setUploadFile(e.target.files[0])}
+                    style={{ marginTop: '10px', marginBottom: '10px' }}
+                  />
+                  {uploadError && (
+                    <Typography color="error" variant="body2">
+                      {uploadError}
+                    </Typography>
+                  )}
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={() => setUploadOpen(false)} color="secondary">
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleUploadFile}
+                    color="primary"
+                    disabled={loadingUpload}
+                  >
+                    {loadingUpload ? 'Uploading...' : 'Upload'}
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </Grid2>
 
             {isFormVisible && (
               <Box marginTop={2}>
@@ -389,7 +393,7 @@ const App = () => {
 
                 {formError && (
                   <Box bgcolor="#f8d7da" border="1px solid #f5c6cb" padding={2} marginTop={3} borderRadius={1}>
-                  <Typography variant="h6" color="error">{formError}</Typography>
+                  <Typography variant="subtitle1" color="error">{formError}</Typography>
                 </Box>
                 )}
 
@@ -425,10 +429,10 @@ const App = () => {
                   <table className="response-table">
                     <thead>
                       <tr>
-                        {groupColumns.map((col, index) => (
+                        {groupColumnsTable.map((col, index) => (
                           <th key={index}>{col}</th>
                         ))}
-                        {selectColumns.map((col, index) => (
+                        {selectColumnsTable.map((col, index) => (
                           <th key={index}>{`${col.function}(${col.column})`}</th>
                         ))}
                       </tr>
@@ -462,3 +466,4 @@ const App = () => {
 };
 
 export default App;
+
