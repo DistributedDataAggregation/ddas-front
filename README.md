@@ -1,23 +1,46 @@
-# Getting Started with Create React App
+# Distributed Data Aggregation System - Frontend App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+The system is available through an interactive application with a user interface. Queries are submitted via a form where the user selects a table from those available in the system. The form dynamically updates to allow the selection of grouping and aggregated columns based on the selected table. Only columns of supported types are shown. For aggregated columns, the user must choose an aggregation function: minimum (`Min`), maximum (`Max`), average (`Avg`), sum (`Sum`), or count (`Count`). 
+
+The query can be extended with additional grouping columns (via the `+ ADD GROUP COLUMN` button) and aggregated columns (via the `+ ADD SELECT COLUMN` button). Columns can also be removed using the `REMOVE` button. 
+
+The query is submitted using the `SUBMIT` button, triggering form validation. The following conditions are checked:
+- A table is selected.
+- At least one grouping column is selected.
+- At least one aggregated column is selected.
+- Grouping columns do not repeat.
+- No column is selected as both grouping and aggregated.
+
+If validation fails, the user is notified and can correct the form. Once the form is successfully validated, it is sent as a query to the system. During query processing, a loading icon appears in the results section. If successful, a table is displayed in the results section, with grouping columns followed by aggregated columns (including their aggregation functions). The table is populated with the query results. To accommodate large tables, the form can be hidden using a button in the top-left corner, and a "back to top" button is available in the bottom-right corner.
+
+If the system encounters an error during query processing, the user is notified via a message in the results section.
+
+Additionally, the user can upload files to the system. Clicking the `UPLOAD` button opens a dialog where the user enters the table name. If the name matches an existing table, the file is appended; otherwise, a new table is created. The user selects a `.parquet` file using the `Choose File` button and must provide both a table name and file for the form to be valid. The `CANCEL` button closes the dialog without uploading. Upon clicking `UPLOAD`, the system attempts to process the file. If the schema of the file does not match the target table, an error message is displayed. Otherwise, a success message confirms the upload.
+
+![image](https://github.com/user-attachments/assets/83203bed-563e-49e8-9d6e-d4a00aa69188)
+
+## Prerequisites
+
+Make sure you have `npm` (to run the app) and Docker (to create Docker image) installed.
+
+### 
 
 ## Available Scripts
 
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
 In the project directory, you can run:
+
+### `npm install -legacy-peer-deps`
+
+Installs all required dependencies.
 
 ### `npm start`
 
 Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Open [http://localhost:3006](http://localhost:3006) to view it in your browser.
 
 The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
 ### `npm run build`
 
@@ -29,42 +52,12 @@ Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### `npm run eject`
+## Docker image
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+In the project directory, you can run:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### `docker build -t ddas-front-image .`
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+to create Docker image.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
