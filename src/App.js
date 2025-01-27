@@ -6,7 +6,7 @@ import SplitPane from 'react-split-pane';
 
 
 const App = () => {
-  const API_URL = "http://localhost:3000/api/v1";
+  const API_URL = window.env?.REACT_APP_API_BASE_URL || process.env.REACT_APP_API_BASE_URL || "http://localhost:3000/api/v1"
   const [tableName, setTableName] = useState('');
   const [tables, setTables] = useState([]);
   const [groupColumns, setGroupColumns] = useState(['']);
@@ -18,25 +18,25 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
-  const [isFormVisible, setIsFormVisible] = useState(true); // State to toggle form visibility
-  const [formError, setFormError] = useState(null); // Nowy stan dla błędów walidacji
-  const [uploadOpen, setUploadOpen] = useState(false); // State to control the upload dialog
+  const [isFormVisible, setIsFormVisible] = useState(true); 
+  const [formError, setFormError] = useState(null); 
+  const [uploadOpen, setUploadOpen] = useState(false); 
   const [uploadTableName, setUploadTableName] = useState('');
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadError, setUploadError] = useState(null);
   const [loadingUpload, setLoadingUpload] = useState(false);
 
-  useEffect(() => {
-    const fetchTables = async () => {
-      try {
-        const res = await fetch(API_URL + '/tables');
-        const data = await res.json();
-        setTables(data);
-      } catch (err) {
-        console.error('Error fetching tables:', err);
-      }
-    };
+  const fetchTables = async () => {
+    try {
+      const res = await fetch(API_URL + '/tables');
+      const data = await res.json();
+      setTables(data);
+    } catch (err) {
+      console.error('Error fetching tables:', err);
+    }
+  };
 
+  useEffect(() => {
     fetchTables();
   }, []);
 
@@ -92,6 +92,7 @@ const App = () => {
 
       const data = await res.text();
       alert(data);
+      fetchTables();
       setUploadOpen(false);
     } catch (err) {
       setUploadError(err.message);
@@ -154,7 +155,7 @@ const App = () => {
   }
 
   const handleSubmit = async () => {
-    setFormError(null); // Resetujemy błędy przed próbą wysłania
+    setFormError(null); 
     setLoading(true);
     setResponse(null);
     setError(null);
@@ -185,7 +186,6 @@ const App = () => {
       tempError = addValidationError(tempError, 'Group columns must be unique.');
     }
 
-    // Walidacja: Konflikt między kolumnami grupującymi a agregowanymi
     const groupSet = new Set(groupColumns.filter((col) => col.trim() !== ''));
     const conflict = selectColumns.some((col) => groupSet.has(col.column.trim()));
     if (conflict) {
@@ -255,8 +255,8 @@ const App = () => {
 
       <SplitPane
       split="vertical"
-      minSize={isFormVisible ? 200 : 0} // Minimalna szerokość formularza
-      defaultSize={isFormVisible ? 300 : 0} // Początkowa szerokość formularza
+      minSize={isFormVisible ? 200 : 0} 
+      defaultSize={isFormVisible ? 300 : 0} 
       style={{ position: 'relative' }}
     >
           <Box className="form" marginBottom={3} position="relative">
