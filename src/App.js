@@ -6,7 +6,7 @@ import SplitPane from 'react-split-pane';
 
 
 const App = () => {
-  const API_URL = window.env?.REACT_APP_API_BASE_URL || "http://localhost:3000/api/v1";
+  const API_URL = window.env?.REACT_APP_API_BASE_URL || process.env.REACT_APP_API_BASE_URL || "http://localhost:3000/api/v1"
   const [tableName, setTableName] = useState('');
   const [tables, setTables] = useState([]);
   const [groupColumns, setGroupColumns] = useState(['']);
