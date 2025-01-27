@@ -17,7 +17,9 @@ If the system encounters an error during query processing, the user is notified 
 
 Additionally, the user can upload files to the system. Clicking the `UPLOAD` button opens a dialog where the user enters the table name. If the name matches an existing table, the file is appended; otherwise, a new table is created. The user selects a `.parquet` file using the `Choose File` button and must provide both a table name and file for the form to be valid. The `CANCEL` button closes the dialog without uploading. Upon clicking `UPLOAD`, the system attempts to process the file. If the schema of the file does not match the target table, an error message is displayed. Otherwise, a success message confirms the upload.
 
-![image](https://github.com/user-attachments/assets/83203bed-563e-49e8-9d6e-d4a00aa69188)
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/83203bed-563e-49e8-9d6e-d4a00aa69188" alt="Sample screen"/>
+</p>
 
 ## Prerequisites
 
