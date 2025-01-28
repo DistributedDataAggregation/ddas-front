@@ -58,7 +58,7 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 
 In the project directory, you can run:
 
-### `docker build -t ddas-front-image .`
+### `docker build -t react-frontend .`
 
 to create Docker image.
 
